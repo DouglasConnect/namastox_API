@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 from flame.manage import action_import
 from flame.util.utils import set_repositories
 
+USER_NAME = 'manuel'
+
 # GET LIST of RA
 @app.route(f'{url_base}{version}list',methods=['GET'])
 @cross_origin()
@@ -43,9 +45,11 @@ def getGeneralInfo(ra_name):
 
 # PUT NEW RA
 @app.route(f'{url_base}{version}new/<string:ra_name>',methods=['PUT'])
+@app.route(f'{url_base}{version}new/<string:ra_name>/<string:user_name>',methods=['PUT'])
 @cross_origin()
-def putNew(ra_name):
-    success, data = manage.action_new(ra_name)
+def putNew(ra_name, user_name=''):
+    user_name=USER_NAME
+    success, data = manage.action_new(ra_name, user_name)
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     else:
