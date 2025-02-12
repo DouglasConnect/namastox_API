@@ -11,6 +11,7 @@ from flask import  url_for, session, redirect
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def catch_all(path):
+
     if "user" not in session:
         return redirect(url_for('login'))
         
