@@ -8,7 +8,7 @@ import os
 import logging
 from functools import wraps
 import jwt
-
+auth_routes = Blueprint('auth_routes', __name__)
 load_dotenv() # load env variables
 
 logging.basicConfig(level=logging.DEBUG) # Basic logging configuration
@@ -68,7 +68,7 @@ def callback():
             return "Failed to fetch tokens."
 
         token_data = response.json()
-        logging.debug(f"Access Token: {token_data['access_token']}")
+        # logging.debug(f"Access Token: {token_data['access_token']}")
         # decoded_token = jwt.decode(token_data['access_token'],options={"verify_signature":False})
         # print(decoded_token) # only while developing
         if "access_token" in token_data:

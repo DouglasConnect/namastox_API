@@ -1,9 +1,7 @@
 from settings import *
 from namastox import status
 import json
-
-def getUsername():
-    return ('manuel')
+from user import getUsername
 
 # GET STATUS of RA
 @app.route(f'{url_base}{version}status/<string:ra_name>',methods=['GET'])
