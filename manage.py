@@ -10,9 +10,6 @@ from werkzeug.utils import secure_filename
 from flame.manage import action_import
 from flame.util.utils import set_repositories
 
-# def getUsername():
-#     return ('manuel')
-
 # GET LIST of RA
 @app.route(f'{url_base}{version}list',methods=['GET'])
 @cross_origin()
