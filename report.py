@@ -1,9 +1,7 @@
 from settings import *
+from user import getUsername
 from namastox import report
 import json
-
-def getUsername():
-    return ('manuel')
 
 # REPORT RA
 @app.route(f'{url_base}{version}report/<string:ra_name>/<string:report_format>',methods=['GET'])
