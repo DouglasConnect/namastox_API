@@ -135,6 +135,10 @@ def getLink(ra_name, link_name):
 @cross_origin()
 def getWorkflow(ra_name, step=None):
     user_name=getUsername()
+    results = manage.action_privileges(ra_name, user_name)
+    if not 'read' in results:
+        return json.dumps(f'No permission to access {ra_name}'), 500, {'ContentType':'application/json'} 
+
     success, workflow_graph = manage.getWorkflow (ra_name, user_name, step)
     if success:
         return json.dumps({'success':True, 'result': workflow_graph}), 200, {'ContentType':'application/json'} 
