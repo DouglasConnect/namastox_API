@@ -2,12 +2,14 @@ from flask import Blueprint, session, redirect, url_for, abort,jsonify,render_te
 from urllib.parse import quote_plus, urlencode
 from settings import *
 import requests
+import json
 from flask import request
 from dotenv import load_dotenv
 import os
 import logging
 from functools import wraps
 import jwt
+from user import getUsername
 auth_routes = Blueprint('auth_routes', __name__)
 load_dotenv() # load env variables
 
@@ -35,6 +37,11 @@ def login_required(f):
 @login_required
 def protected():
     return "You have access to this protected route"
+
+@app.route("/namastox/v1/user_info/")
+@login_required
+def user_info():
+    return json.dumps({'username':getUsername()}), 200, {'ContentType':'application/json'} 
 
 @app.route('/login')
 def login():
