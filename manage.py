@@ -25,6 +25,11 @@ def getList():
 @app.route(f'{url_base}{version}steps/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getSteps(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = manage.action_steps(ra_name, out='json')
     
     if success:
@@ -37,6 +42,11 @@ def getSteps(ra_name):
 @app.route(f'{url_base}{version}general_info/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getGeneralInfo(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = manage.action_info(ra_name, out='json')
     if success:
         return data
@@ -58,6 +68,11 @@ def putNew(ra_name):
 @app.route(f'{url_base}{version}delete/<string:ra_name>/<int:step>',methods=['PUT'])
 @cross_origin()
 def putKill(ra_name, step=None):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = manage.action_kill(ra_name,step)
 
     if success:
@@ -88,6 +103,10 @@ def allowed_import(filename):
 @cross_origin()
 def putLink(ra_name):
 
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     # check if the post request has the file part
     if 'file' not in request.files:
         return json.dumps(f'Failed to upload file, no file information found'), 500, {'ContentType':'application/json'} 
@@ -114,6 +133,10 @@ def putLink(ra_name):
 @app.route(f'{url_base}{version}link/<string:ra_name>/<string:link_name>',methods=['GET'])
 @cross_origin()
 def getLink(ra_name, link_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
 
     success, repo_path = manage.getRepositoryPath (ra_name)
     if success:
@@ -200,6 +223,11 @@ def convertSubstances():
 @app.route(f'{url_base}{version}export/<string:ra_name>/',methods=['GET'])
 @cross_origin()
 def exportRA(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, export_file = manage.exportRA (ra_name)
     if success:
         return send_file(export_file, as_attachment=True)
@@ -245,6 +273,11 @@ def importRA():
 @app.route(f'{url_base}{version}attachments/<string:ra_name>/',methods=['GET'])
 @cross_origin()
 def attachmentsRA(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, attachments_file = manage.attachmentsRA (ra_name)
     if success:
         return send_file(attachments_file, as_attachment=True)
@@ -284,6 +317,11 @@ def modelDocumentation(model_name, model_ver):
 @app.route(f'{url_base}{version}predict/<string:ra_name>',methods=['PUT'])
 @cross_origin()
 def predict(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     models = []
     versions = []
 
@@ -372,6 +410,10 @@ def inform(molname=None, casrn=None):
 @cross_origin()
 def putTable(ra_name):
 
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     # check if the post request has the file part
     if 'file' not in request.files:
         return json.dumps(f'Failed to upload file, no file information found'), 500, {'ContentType':'application/json'} 
