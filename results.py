@@ -8,8 +8,7 @@ import json
 @app.route(f'{url_base}{version}results/<string:ra_name>/<int:step>',methods=['GET'])
 @cross_origin()
 def getResults(ra_name, step=None):
-    user_name = getUsername()
-    success, data = results.action_results(ra_name, user_name, step, out='json')
+    success, data = results.action_results(ra_name, step, out='json')
     if success:
         return data
     else:
@@ -18,8 +17,7 @@ def getResults(ra_name, step=None):
 @app.route(f'{url_base}{version}result/<string:ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getResult(ra_name, result_id):
-    user_name = getUsername()
-    success, data = results.action_result(ra_name, user_name, result_id, out='json')
+    success, data = results.action_result(ra_name, result_id, out='json')
     if success:
         return data
     else:
@@ -28,8 +26,7 @@ def getResult(ra_name, result_id):
 @app.route(f'{url_base}{version}task/<string:ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getTask(ra_name, result_id):
-    user_name = getUsername()
-    success, data = results.action_task(ra_name, user_name, result_id)
+    success, data = results.action_task(ra_name, result_id)
     if success:
         return data
     else:
@@ -38,8 +35,7 @@ def getTask(ra_name, result_id):
 @app.route(f'{url_base}{version}pending_tasks/<ra_name>',methods=['GET'])
 @cross_origin()
 def getPendingTasks(ra_name):
-    user_name = getUsername()
-    success, data = results.action_pendingTasks(ra_name, user_name)
+    success, data = results.action_pendingTasks(ra_name)
     if success:
         return data
     else:
@@ -48,8 +44,7 @@ def getPendingTasks(ra_name):
 @app.route(f'{url_base}{version}pending_task/<ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getPendingTask(ra_name, result_id):
-    user_name = getUsername()
-    success, data = results.action_pendingTask(ra_name, user_name, result_id)
+    success, data = results.action_pendingTask(ra_name, result_id)
     if success:
         return data
     else:
@@ -59,8 +54,7 @@ def getPendingTask(ra_name, result_id):
 @app.route(f'{url_base}{version}upstream_tasks/<ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getUpstreamTasks(ra_name, result_id):
-    user_name = getUsername()
-    success, data = results.action_upstreamTasks(ra_name, user_name, result_id)
+    success, data = results.action_upstreamTasks(ra_name, result_id)
     if success:
         return data
     else:

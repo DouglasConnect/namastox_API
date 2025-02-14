@@ -7,8 +7,7 @@ import json
 @app.route(f'{url_base}{version}notes/<string:ra_name>',methods=['GET'])
 @app.route(f'{url_base}{version}notes/<string:ra_name>/<int:step>',methods=['GET'])
 def getNotes(ra_name, step=None):
-    user_name = getUsername()
-    success, data = notes.action_notes(ra_name, user_name, step, out='json')
+    success, data = notes.action_notes(ra_name, step, out='json')
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
     else:
@@ -16,8 +15,7 @@ def getNotes(ra_name, step=None):
 
 @app.route(f'{url_base}{version}note/<string:ra_name>/<string:note_id>',methods=['GET'])
 def getNote(ra_name, note_id):
-    user_name = getUsername()
-    success, data = notes.action_note(ra_name, user_name, note_id)
+    success, data = notes.action_note(ra_name, note_id)
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
     else:
@@ -32,8 +30,7 @@ def putNote(ra_name):
     else:
         return json.dumps('No note found'), 500, {'ContentType':'application/json'} 
 
-    user_name = getUsername()
-    success, data = notes.action_note_add(ra_name, user_name, note)
+    success, data = notes.action_note_add(ra_name, note)
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
     else:
@@ -41,8 +38,7 @@ def putNote(ra_name):
     
 @app.route(f'{url_base}{version}note/<string:ra_name>/<string:note_id>',methods=['DELETE'])
 def deleteNote(ra_name, note_id):
-    user_name = getUsername()
-    success, data = notes.action_note_delete(ra_name, user_name, note_id)
+    success, data = notes.action_note_delete(ra_name, note_id)
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
     else:

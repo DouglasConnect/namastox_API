@@ -12,14 +12,16 @@ def getUsername():
 
     # return (session['user'].get('username', 'Unknown'))
 
-def checkAccess(ra_name):
+def checkAccess(ra_name, access_type):
     try:
         user_name = session['user'].get('username', 'Unknown')
     except:
         user_name = 'generic'
 
     results = manage.action_privileges(ra_name, user_name)
-    if not 'read' in results:
-        return False, json.dumps(f'No permission to access {ra_name}'), 500, {'ContentType':'application/json'} 
+    
+    code = {'read':'r', 'write':'w'}
+    if not code[access_type] in results:
+        return False, (json.dumps(f'Forbidden {access_type} access to {ra_name}'), 403, {'ContentType':'application/json'})
     else:
         return True, user_name

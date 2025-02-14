@@ -25,8 +25,7 @@ def getList():
 @app.route(f'{url_base}{version}steps/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getSteps(ra_name):
-    user_name = getUsername()
-    success, data = manage.action_steps(ra_name, user_name, out='json')
+    success, data = manage.action_steps(ra_name, out='json')
     
     if success:
         return data
@@ -38,8 +37,7 @@ def getSteps(ra_name):
 @app.route(f'{url_base}{version}general_info/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getGeneralInfo(ra_name):
-    user_name=getUsername()
-    success, data = manage.action_info(ra_name, user_name,  out='json')
+    success, data = manage.action_info(ra_name, out='json')
     if success:
         return data
     else:
@@ -49,8 +47,7 @@ def getGeneralInfo(ra_name):
 @app.route(f'{url_base}{version}new/<string:ra_name>',methods=['PUT'])
 @cross_origin()
 def putNew(ra_name):
-    user_name=getUsername()
-    success, data = manage.action_new(ra_name, user_name)
+    success, data = manage.action_new(ra_name)
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     else:
@@ -61,8 +58,7 @@ def putNew(ra_name):
 @app.route(f'{url_base}{version}delete/<string:ra_name>/<int:step>',methods=['PUT'])
 @cross_origin()
 def putKill(ra_name, step=None):
-    user_name=getUsername()
-    success, data = manage.action_kill(ra_name, user_name, step)
+    success, data = manage.action_kill(ra_name,step)
 
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
@@ -102,11 +98,10 @@ def putLink(ra_name):
     if file.filename == '':
         return json.dumps(f'Failed to upload file, empty file nama'), 500, {'ContentType':'application/json'} 
     
-    user_name=getUsername()
     if file and allowed_attachment(file.filename):
         filename = secure_filename(file.filename)
         filename = filename.replace (' ','_')
-        success, data = manage.getRepositoryPath (ra_name, user_name)
+        success, data = manage.getRepositoryPath (ra_name)
         if not success:
             return json.dumps(f'Failed to upload file, unable to access repository'), 500, {'ContentType':'application/json'} 
 
@@ -119,9 +114,8 @@ def putLink(ra_name):
 @app.route(f'{url_base}{version}link/<string:ra_name>/<string:link_name>',methods=['GET'])
 @cross_origin()
 def getLink(ra_name, link_name):
-    user_name=getUsername()
 
-    success, repo_path = manage.getRepositoryPath (ra_name, user_name)
+    success, repo_path = manage.getRepositoryPath (ra_name)
     if success:
         link_name = link_name.replace (' ','_')
         link_file = os.path.join (repo_path, link_name)
@@ -135,12 +129,11 @@ def getLink(ra_name, link_name):
 @cross_origin()
 def getWorkflow(ra_name, step=None):
 
-    success, access_result = checkAccess(ra_name)
-    if not success:
-        return access_result
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
 
-
-    success, workflow_graph = manage.getWorkflow (ra_name, access_result, step)
+    success, workflow_graph = manage.getWorkflow (ra_name, step)
     if success:
         return json.dumps({'success':True, 'result': workflow_graph}), 200, {'ContentType':'application/json'} 
     else:
@@ -207,8 +200,7 @@ def convertSubstances():
 @app.route(f'{url_base}{version}export/<string:ra_name>/',methods=['GET'])
 @cross_origin()
 def exportRA(ra_name):
-    user_name=getUsername()
-    success, export_file = manage.exportRA (ra_name, user_name)
+    success, export_file = manage.exportRA (ra_name)
     if success:
         return send_file(export_file, as_attachment=True)
     else:
@@ -229,8 +221,6 @@ def importRA():
         return json.dumps({"success": False, "error": "Failed to upload file, empty filename"}), 500, {'ContentType':'application/json'} 
     
     if file and allowed_import(file.filename):
-        user_name=getUsername()
-
         # copy the file to a temporary file in the backend 
         tempdirname = tempfile.mkdtemp()
         filename = secure_filename(file.filename)
@@ -238,7 +228,7 @@ def importRA():
         file.save(import_path)
 
         # call import with local path pointing to temp dir
-        success, message = manage.importRA (user_name, import_path)
+        success, message = manage.importRA (import_path)
 
         # remove the temp dir
         shutil.rmtree(tempdirname)
@@ -255,8 +245,7 @@ def importRA():
 @app.route(f'{url_base}{version}attachments/<string:ra_name>/',methods=['GET'])
 @cross_origin()
 def attachmentsRA(ra_name):
-    user_name=getUsername()
-    success, attachments_file = manage.attachmentsRA (ra_name, user_name)
+    success, attachments_file = manage.attachmentsRA (ra_name)
     if success:
         return send_file(attachments_file, as_attachment=True)
     else:
@@ -288,8 +277,6 @@ def modelDocumentation(model_name, model_ver):
 @app.route(f'{url_base}{version}predict/<string:ra_name>',methods=['PUT'])
 @cross_origin()
 def predict(ra_name):
-    user_name=getUsername()
-
     models = []
     versions = []
 
@@ -310,9 +297,9 @@ def predict(ra_name):
     if len(models)==0 or len(versions)==0 or len(versions)!=len(models):
         return json.dumps(f'Incomplete model information in prediction call'), 500, {'ContentType':'application/json'} 
 
-    success, results = manage.predictLocalModels(ra_name, user_name, models, versions)
+    success, results = manage.predictLocalModels(ra_name, models, versions)
     if success:
-        success, results = manage.getLocalModelPrediction(ra_name, user_name, results)
+        success, results = manage.getLocalModelPrediction(ra_name, results)
         if success :
             return results, 200, {'ContentType':'application/json'}
         else:
@@ -389,10 +376,9 @@ def putTable(ra_name):
         return json.dumps(f'Failed to upload file, empty filename'), 500, {'ContentType':'application/json'} 
     
     if file and allowed_attachment(file.filename):
-        user_name=getUsername()
         filename = secure_filename(file.filename)
         filename = filename.replace (' ','_')
-        success, data = manage.getRepositoryPath (ra_name, user_name)
+        success, data = manage.getRepositoryPath (ra_name)
         if not success:
             return json.dumps(f'Failed to upload file, unable to access repository'), 500, {'ContentType':'application/json'} 
 
@@ -439,11 +425,10 @@ def importModel():
         return json.dumps(f'Failed to upload file, empty filename'), 500, {'ContentType':'application/json'} 
     
     if file and allowed_import(file.filename):
-        user_name=getUsername()
         filename = secure_filename(file.filename)
         filename = filename.replace (' ','_')
 
-        data = manage.getModelPath (user_name)
+        data = manage.getModelPath ()
         pathname = os.path.join(data, filename)
         file.save(pathname)
 

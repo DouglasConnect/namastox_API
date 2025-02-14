@@ -8,8 +8,7 @@ from user import getUsername
 @app.route(f'{url_base}{version}status/<string:ra_name>/<int:step>',methods=['GET'])
 @cross_origin()
 def getStatus(ra_name, step=None):
-    user_name =  getUsername()
-    success, data = status.action_status(ra_name, user_name, step, out='json')
+    success, data = status.action_status(ra_name, step, out='json')
     if success:
         return data
     else:

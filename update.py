@@ -17,7 +17,6 @@ def allowed_attachment(filename):
 def updateGeneralInfo(ra_name):
     input_string = request.form['general']
     input_dict = json.loads(input_string)
-    user_name = getUsername()
 
     # check if the post request has the file part
     if 'custom_workflow_file' in request.files:
@@ -31,13 +30,13 @@ def updateGeneralInfo(ra_name):
         if file and allowed_attachment(file.filename):
             filename = secure_filename(file.filename)
             filename = filename.replace (' ','_')
-            success, data = manage.getPath (ra_name, user_name)
+            success, data = manage.getPath (ra_name)
             if not success:
                 return json.dumps(f'Failed to upload file, unable to access repository'), 500, {'ContentType':'application/json'} 
 
             file.save(os.path.join(data, filename))
 
-    success, data = update.action_update_general_info(ra_name, user_name,  {'general':input_dict})
+    success, data = update.action_update_general_info(ra_name, {'general':input_dict})
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     else:
@@ -50,8 +49,7 @@ def updateGeneralInfo(ra_name):
 def updateResult(ra_name, step=None):
     input_string = request.form['result']
     input_dict = json.loads(input_string)
-    user_name = getUsername()
-    success, data = update.action_update_result(ra_name, user_name, step, {'result':[input_dict]})
+    success, data = update.action_update_result(ra_name, step, {'result':[input_dict]})
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     else:
