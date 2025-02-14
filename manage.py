@@ -262,6 +262,13 @@ def localModels():
     else:
         return json.dumps(f'Failed to get list of local models'), 500, {'ContentType':'application/json'} 
     
+# RETURN LIST OF USERS
+@app.route(f'{url_base}{version}users/<string:ra_name>',methods=['GET'])
+@cross_origin()
+def getUsers(ra_name):
+    users = manage.action_getusers(ra_name)
+    return users, 200, {'ContentType':'application/json'}
+
 # RETURN DOCUMENTATION FOR A MODELS
 @app.route(f'{url_base}{version}model_documentation/<string:model_name>/<int:model_ver>',methods=['GET'])
 @cross_origin()
