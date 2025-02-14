@@ -49,14 +49,13 @@ def updateUsers(ra_name):
     users_read=None
     users_write=None
     if 'read' in request.form:
-        users_read = request.form['read'].strip().split(',')
+        users_read = request.form['read'].replace(' ', '').strip().split(',')
     if 'write' in request.form:
-        users_write = request.form['write'].strip().split(',')
+        users_write = request.form['write'].replace(' ', '').strip().split(',')
 
     manage.action_setusers(ra_name, users_read, users_write)
 
     return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
-
 
 # PUT RESULT
 @app.route(f'{url_base}{version}result/<string:ra_name>',methods=['PUT'])
