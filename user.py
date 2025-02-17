@@ -19,9 +19,13 @@ def checkAccess(ra_name, access_type):
         user_name = 'generic'
 
     results = manage.action_privileges(ra_name, user_name)
+
+    # read access is checked allways    
+    if not 'r' in results:
+        return False, (json.dumps(f'Forbidden READ access to {ra_name}'), 403, {'ContentType':'application/json'})
     
-    code = {'read':'r', 'write':'w'}
-    if not code[access_type] in results:
-        return False, (json.dumps(f'Forbidden {access_type} access to {ra_name}'), 403, {'ContentType':'application/json'})
-    else:
-        return True, user_name
+    # if access checked is write and no permission is granted return error
+    if access_type == 'write' and not 'w' in results:
+        return False, (json.dumps(f'Forbidden WRITE access to {ra_name}'), 403, {'ContentType':'application/json'})
+
+    return True, user_name
