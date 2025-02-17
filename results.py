@@ -1,5 +1,5 @@
 from settings import *
-from user import getUsername
+from user import checkAccess
 from namastox import results
 import json
 
@@ -8,6 +8,11 @@ import json
 @app.route(f'{url_base}{version}results/<string:ra_name>/<int:step>',methods=['GET'])
 @cross_origin()
 def getResults(ra_name, step=None):
+    
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = results.action_results(ra_name, step, out='json')
     if success:
         return data
@@ -17,6 +22,11 @@ def getResults(ra_name, step=None):
 @app.route(f'{url_base}{version}result/<string:ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getResult(ra_name, result_id):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = results.action_result(ra_name, result_id, out='json')
     if success:
         return data
@@ -26,6 +36,11 @@ def getResult(ra_name, result_id):
 @app.route(f'{url_base}{version}task/<string:ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getTask(ra_name, result_id):
+    
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = results.action_task(ra_name, result_id)
     if success:
         return data
@@ -35,6 +50,11 @@ def getTask(ra_name, result_id):
 @app.route(f'{url_base}{version}pending_tasks/<ra_name>',methods=['GET'])
 @cross_origin()
 def getPendingTasks(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = results.action_pendingTasks(ra_name)
     if success:
         return data
@@ -44,6 +64,11 @@ def getPendingTasks(ra_name):
 @app.route(f'{url_base}{version}pending_task/<ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getPendingTask(ra_name, result_id):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = results.action_pendingTask(ra_name, result_id)
     if success:
         return data
@@ -54,6 +79,11 @@ def getPendingTask(ra_name, result_id):
 @app.route(f'{url_base}{version}upstream_tasks/<ra_name>/<string:result_id>',methods=['GET'])
 @cross_origin()
 def getUpstreamTasks(ra_name, result_id):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = results.action_upstreamTasks(ra_name, result_id)
     if success:
         return data

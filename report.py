@@ -1,5 +1,5 @@
 from settings import *
-from user import getUsername
+from user import checkAccess
 from namastox import report
 import json
 
@@ -7,6 +7,11 @@ import json
 @app.route(f'{url_base}{version}report/<string:ra_name>/<string:report_format>',methods=['GET'])
 @cross_origin()
 def reportRA(ra_name, report_format):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, result = report.action_report (ra_name, report_format)
     if success:
         return send_file(result, as_attachment=True)

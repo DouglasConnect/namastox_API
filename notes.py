@@ -1,5 +1,5 @@
 from settings import *
-from user import getUsername
+from user import checkAccess
 from namastox import notes
 import json
 
@@ -7,6 +7,10 @@ import json
 @app.route(f'{url_base}{version}notes/<string:ra_name>',methods=['GET'])
 @app.route(f'{url_base}{version}notes/<string:ra_name>/<int:step>',methods=['GET'])
 def getNotes(ra_name, step=None):
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = notes.action_notes(ra_name, step, out='json')
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
@@ -15,6 +19,10 @@ def getNotes(ra_name, step=None):
 
 @app.route(f'{url_base}{version}note/<string:ra_name>/<string:note_id>',methods=['GET'])
 def getNote(ra_name, note_id):
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = notes.action_note(ra_name, note_id)
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
@@ -23,6 +31,11 @@ def getNote(ra_name, note_id):
     
 @app.route(f'{url_base}{version}note/<string:ra_name>',methods=['PUT'])
 def putNote(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     note = {}
     if 'title' in request.form and 'text' in request.form :
         note['title'] = request.form['title']
@@ -38,6 +51,10 @@ def putNote(ra_name):
     
 @app.route(f'{url_base}{version}note/<string:ra_name>/<string:note_id>',methods=['DELETE'])
 def deleteNote(ra_name, note_id):
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     success, data = notes.action_note_delete(ra_name, note_id)
     if success:
         return json.dumps(data), 200, {'ContentType':'application/json'} 
