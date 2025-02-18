@@ -224,7 +224,7 @@ def convertSubstances():
 @cross_origin()
 def exportRA(ra_name):
 
-    granted, access_result = checkAccess(ra_name,'read')
+    granted, access_result = checkAccess(ra_name,'write')
     if not granted:
         return access_result # this is the 403 JSON response
 
@@ -299,6 +299,10 @@ def localModels():
 @app.route(f'{url_base}{version}users/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getUsers(ra_name):
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     users = manage.action_getusers(ra_name)
     return users, 200, {'ContentType':'application/json'}
 
