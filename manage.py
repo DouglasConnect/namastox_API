@@ -1,5 +1,5 @@
 from settings import *
-from user import getUsername, checkAccess
+from user import getUsername, checkAccess, printSession
 from namastox import manage
 
 import json
@@ -43,6 +43,8 @@ def getSteps(ra_name):
 @cross_origin()
 def getGeneralInfo(ra_name):
 
+    printSession()
+
     granted, access_result = checkAccess(ra_name,'read')
     if not granted:
         return access_result # this is the 403 JSON response
@@ -62,6 +64,17 @@ def putNew(ra_name):
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
     else:
         return json.dumps(f'Failed to create new RA {ra_name}, with error {data}'), 500, {'ContentType':'application/json'} 
+
+# PUT CLONE RA
+@app.route(f'{url_base}{version}clone/<string:ra_name>',methods=['PUT'])
+@cross_origin()
+def putClone(ra_name):
+    success, data = manage.action_clone(ra_name)
+    if success:
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+    else:
+        return json.dumps(f'Failed to clone RA {ra_name}, with error {data}'), 500, {'ContentType':'application/json'} 
+
 
 # PUT DELETE RA
 @app.route(f'{url_base}{version}delete/<string:ra_name>',methods=['PUT'])
