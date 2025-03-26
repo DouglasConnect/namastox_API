@@ -1,4 +1,5 @@
 from settings import *
+from user import getUsername, checkAccess, printSession
 from namastox import manage
 
 import json
@@ -13,7 +14,8 @@ from flame.util.utils import set_repositories
 @app.route(f'{url_base}{version}list',methods=['GET'])
 @cross_origin()
 def getList():
-    success, data = manage.action_list(out='json')
+    user_name = getUsername()
+    success, data = manage.action_list(user_name, out='json')
     if success:
         return data
     else:
@@ -23,6 +25,11 @@ def getList():
 @app.route(f'{url_base}{version}steps/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getSteps(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = manage.action_steps(ra_name, out='json')
     
     if success:
@@ -35,6 +42,13 @@ def getSteps(ra_name):
 @app.route(f'{url_base}{version}general_info/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getGeneralInfo(ra_name):
+
+    printSession()
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = manage.action_info(ra_name, out='json')
     if success:
         return data
@@ -51,12 +65,28 @@ def putNew(ra_name):
     else:
         return json.dumps(f'Failed to create new RA {ra_name}, with error {data}'), 500, {'ContentType':'application/json'} 
 
+# PUT CLONE RA
+@app.route(f'{url_base}{version}clone/<string:ra_name>',methods=['PUT'])
+@cross_origin()
+def putClone(ra_name):
+    success, data = manage.action_clone(ra_name)
+    if success:
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+    else:
+        return json.dumps(f'Failed to clone RA {ra_name}, with error {data}'), 500, {'ContentType':'application/json'} 
+
+
 # PUT DELETE RA
 @app.route(f'{url_base}{version}delete/<string:ra_name>',methods=['PUT'])
 @app.route(f'{url_base}{version}delete/<string:ra_name>/<int:step>',methods=['PUT'])
 @cross_origin()
 def putKill(ra_name, step=None):
-    success, data = manage.action_kill(ra_name, step)
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
+    success, data = manage.action_kill(ra_name,step)
 
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
@@ -86,6 +116,10 @@ def allowed_import(filename):
 @cross_origin()
 def putLink(ra_name):
 
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     # check if the post request has the file part
     if 'file' not in request.files:
         return json.dumps(f'Failed to upload file, no file information found'), 500, {'ContentType':'application/json'} 
@@ -113,6 +147,10 @@ def putLink(ra_name):
 @cross_origin()
 def getLink(ra_name, link_name):
 
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, repo_path = manage.getRepositoryPath (ra_name)
     if success:
         link_name = link_name.replace (' ','_')
@@ -126,6 +164,11 @@ def getLink(ra_name, link_name):
 @app.route(f'{url_base}{version}workflow/<string:ra_name>/<int:step>',methods=['GET'])
 @cross_origin()
 def getWorkflow(ra_name, step=None):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, workflow_graph = manage.getWorkflow (ra_name, step)
     if success:
         return json.dumps({'success':True, 'result': workflow_graph}), 200, {'ContentType':'application/json'} 
@@ -193,6 +236,11 @@ def convertSubstances():
 @app.route(f'{url_base}{version}export/<string:ra_name>/',methods=['GET'])
 @cross_origin()
 def exportRA(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, export_file = manage.exportRA (ra_name)
     if success:
         return send_file(export_file, as_attachment=True)
@@ -214,7 +262,6 @@ def importRA():
         return json.dumps({"success": False, "error": "Failed to upload file, empty filename"}), 500, {'ContentType':'application/json'} 
     
     if file and allowed_import(file.filename):
-
         # copy the file to a temporary file in the backend 
         tempdirname = tempfile.mkdtemp()
         filename = secure_filename(file.filename)
@@ -239,6 +286,11 @@ def importRA():
 @app.route(f'{url_base}{version}attachments/<string:ra_name>/',methods=['GET'])
 @cross_origin()
 def attachmentsRA(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, attachments_file = manage.attachmentsRA (ra_name)
     if success:
         return send_file(attachments_file, as_attachment=True)
@@ -256,6 +308,17 @@ def localModels():
     else:
         return json.dumps(f'Failed to get list of local models'), 500, {'ContentType':'application/json'} 
     
+# RETURN LIST OF USERS
+@app.route(f'{url_base}{version}users/<string:ra_name>',methods=['GET'])
+@cross_origin()
+def getUsers(ra_name):
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
+    users = manage.action_getusers(ra_name)
+    return users, 200, {'ContentType':'application/json'}
+
 # RETURN DOCUMENTATION FOR A MODELS
 @app.route(f'{url_base}{version}model_documentation/<string:model_name>/<int:model_ver>',methods=['GET'])
 @cross_origin()
@@ -271,6 +334,10 @@ def modelDocumentation(model_name, model_ver):
 @app.route(f'{url_base}{version}predict/<string:ra_name>',methods=['PUT'])
 @cross_origin()
 def predict(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'read')
+    if not granted:
+        return access_result # this is the 403 JSON response
 
     models = []
     versions = []
@@ -360,6 +427,10 @@ def inform(molname=None, casrn=None):
 @cross_origin()
 def putTable(ra_name):
 
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+    
     # check if the post request has the file part
     if 'file' not in request.files:
         return json.dumps(f'Failed to upload file, no file information found'), 500, {'ContentType':'application/json'} 

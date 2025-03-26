@@ -1,4 +1,5 @@
 from settings import *
+from user import checkAccess
 import json
 import os
 from namastox import update
@@ -14,6 +15,11 @@ def allowed_attachment(filename):
 @app.route(f'{url_base}{version}general_info/<string:ra_name>',methods=['PUT'])
 @cross_origin()
 def updateGeneralInfo(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     input_string = request.form['general']
     input_dict = json.loads(input_string)
 
@@ -41,11 +47,36 @@ def updateGeneralInfo(ra_name):
     else:
         return json.dumps(f'Failed to update General Info for {ra_name} with error: {data}'), 500, {'ContentType':'application/json'} 
 
+# PUT USERS
+@app.route(f'{url_base}{version}users/<string:ra_name>',methods=['PUT'])
+@cross_origin()
+def updateUsers(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
+    users_read=None
+    users_write=None
+    if 'read' in request.form:
+        users_read = request.form['read'].replace(' ', '').strip().split(',')
+    if 'write' in request.form:
+        users_write = request.form['write'].replace(' ', '').strip().split(',')
+
+    manage.action_setusers(ra_name, users_read, users_write)
+
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+
 # PUT RESULT
 @app.route(f'{url_base}{version}result/<string:ra_name>',methods=['PUT'])
 @app.route(f'{url_base}{version}result/<string:ra_name>/<int:step>',methods=['PUT'])
 @cross_origin()
 def updateResult(ra_name, step=None):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     input_string = request.form['result']
     input_dict = json.loads(input_string)
     success, data = update.action_update_result(ra_name, step, {'result':[input_dict]})
