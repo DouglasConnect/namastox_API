@@ -1,5 +1,5 @@
 from settings import *
-from user import getUsername, checkAccess, printSession
+from user import getUsername, checkAccess
 from namastox import manage
 
 import json
@@ -42,8 +42,6 @@ def getSteps(ra_name):
 @app.route(f'{url_base}{version}general_info/<string:ra_name>',methods=['GET'])
 @cross_origin()
 def getGeneralInfo(ra_name):
-
-    printSession()
 
     granted, access_result = checkAccess(ra_name,'read')
     if not granted:
