@@ -67,6 +67,11 @@ def putNew(ra_name):
 @app.route(f'{url_base}{version}clone/<string:ra_name>',methods=['PUT'])
 @cross_origin()
 def putClone(ra_name):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = manage.action_clone(ra_name)
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
@@ -77,6 +82,11 @@ def putClone(ra_name):
 @app.route(f'{url_base}{version}rename/<string:ra_name>/<string:ra_newname>',methods=['PUT'])
 @cross_origin()
 def putRename(ra_name, ra_newname):
+
+    granted, access_result = checkAccess(ra_name,'write')
+    if not granted:
+        return access_result # this is the 403 JSON response
+
     success, data = manage.action_rename(ra_name, ra_newname)
     if success:
         return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
