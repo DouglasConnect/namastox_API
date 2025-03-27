@@ -45,8 +45,8 @@ def user_info():
 
 @app.route('/login')
 def login():
-    authorize_url = f"{os.environ.get('KEYCLOAK_AUTHORIZE_URL')}/auth/realms/namastox/protocol/openid-connect/auth"
-    redirect_uri = f"{os.environ.get('KEYCLOAK_URL')}/callback"
+    authorize_url = f"{os.environ.get('KEYCLOAK_AUTHORIZE_URL')}/realms/namastox/protocol/openid-connect/auth"
+    redirect_uri = f"http://localhost:5000/callback"
     params = {
         'client_id':"namastox-client",
         'redirect_uri':redirect_uri,
@@ -59,11 +59,11 @@ def login():
 def callback():
     code = request.args.get('code')
     logging.debug(f"Callback received with code:{code}")
-    token_endpoint = f"http://keycloak:8080/auth/realms/namastox/protocol/openid-connect/token"
+    token_endpoint = f"http://localhost:8080/realms/namastox/protocol/openid-connect/token"
     payload = {
         "grant_type": "authorization_code",
         "code":code,
-        "redirect_uri": f"{os.environ.get('KEYCLOAK_URL')}/callback",
+        "redirect_uri": f"http://localhost:5000/callback",
         "client_id": "namastox-client",
         "client_secret":os.environ.get('KEYCLOAK_CLIENT_SECRET')
     }
@@ -75,17 +75,9 @@ def callback():
             return "Failed to fetch tokens."
 
         token_data = response.json()
-        # logging.debug(f"Access Token: {token_data['access_token']}")
         decoded_token = jwt.decode(token_data['access_token'],options={"verify_signature":False})
-        # print(decoded_token) # only while developing
         if "access_token" in token_data:
-           # userinfo_endpoint = f"http://localhost:8080//realms/{os.environ.get('KEYCLOAK_REALM')}/protocol/openid-connect/userinfo"
-           # userinfo_response = requests.get(userinfo_endpoint,headers={"Authorization":f"Bearer {token_data['access_token']}"})
-           # userinfo = userinfo_response.json()
             session['user'] = {
-              #  "id_token": token_data.get('id_token'),
-              #  "access_token": token_data.get('access_token'),
-              #  "refresh_token": token_data.get("refresh_token"),
                 "username": decoded_token["preferred_username"],
             }
 
@@ -102,7 +94,7 @@ def callback():
 def logout():
     logging.debug("Attempting to logout...")
     session.clear()
-    logout_url = f"{os.environ.get('KEYCLOAK_AUTHORIZE_URL')}/auth/realms/namastox/protocol/openid-connect/logout?redirect_uri={url_for('index',_external=True)}"
+    logout_url = f"{os.environ.get('KEYCLOAK_AUTHORIZE_URL')}/realms/namastox/protocol/openid-connect/logout?redirect_uri={url_for('index',_external=True)}"
     return redirect(logout_url)
 
 
