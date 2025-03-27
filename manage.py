@@ -73,6 +73,16 @@ def putClone(ra_name):
     else:
         return json.dumps(f'Failed to clone RA {ra_name}, with error {data}'), 500, {'ContentType':'application/json'} 
 
+# PUT RENAME RA
+@app.route(f'{url_base}{version}rename/<string:ra_name>/<string:ra_newname>',methods=['PUT'])
+@cross_origin()
+def putRename(ra_name, ra_newname):
+    success, data = manage.action_rename(ra_name, ra_newname)
+    if success:
+        return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+    else:
+        return json.dumps(f'Failed to rename RA {ra_name} as {ra_newname}, with error {data}'), 500, {'ContentType':'application/json'} 
+
 
 # PUT DELETE RA
 @app.route(f'{url_base}{version}delete/<string:ra_name>',methods=['PUT'])
